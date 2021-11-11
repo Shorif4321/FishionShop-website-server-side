@@ -11,6 +11,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json())
 
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.d4vnz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -20,6 +21,7 @@ async function run() {
     const database = client.db("bagdb");
     const serviceCollection = database.collection("service");
     const orderCollection = database.collection("order");
+    const reviewCollection = database.collection("review");
     // create a document to insert
     
     //POST SERVICE API
@@ -27,7 +29,8 @@ async function run() {
             const service = req.body;
             const result = await serviceCollection.insertOne(service)
             res.json(result)
-        })
+     })
+    
 
      //GET SERVICE API
         app.get('/services', async (req, res) => {
@@ -42,6 +45,14 @@ async function run() {
             const query = { _id: ObjectId(id) }
             const service = await serviceCollection.findOne(query);
             res.json(service)
+        })
+
+      //Delete TO SERVICE//PRODUCT
+        app.delete('/services/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const result = await serviceCollection.deleteOne(query)
+            res.json(result)
         })
     
         //POST API FOR ORDER
@@ -96,6 +107,19 @@ async function run() {
             res.json(result)
         })
 
+    //POST Review API
+     app.post('/review', async (req, res) => {
+            const review = req.body;
+            const result = await reviewCollection.insertOne(review)
+            res.json(result)
+     })
+    
+    //GET SERVICE API
+        app.get('/review', async (req, res) => {
+            const cursor = reviewCollection.find({})
+            const review = await cursor.toArray();
+            res.send(review)
+        })
     
    
   } finally {
