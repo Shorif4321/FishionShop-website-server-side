@@ -138,7 +138,7 @@ async function run() {
           res.json(result);
         })
 
-      //GET ADMIN 
+      //GET ADMIN API
       app.get('/users/:email', async (req, res) => {
           const email = req.params.email;
           const query = { email: email };
