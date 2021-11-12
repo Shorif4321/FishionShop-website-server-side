@@ -12,8 +12,8 @@ app.use(cors());
 app.use(express.json())
 
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.d4vnz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+  const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.d4vnz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
+  const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 async function run() {
   try {
@@ -22,6 +22,7 @@ async function run() {
     const serviceCollection = database.collection("service");
     const orderCollection = database.collection("order");
     const reviewCollection = database.collection("review");
+    const userCollection = database.collection("users");
     // create a document to insert
     
     //POST SERVICE API
@@ -120,12 +121,41 @@ async function run() {
             const review = await cursor.toArray();
             res.send(review)
         })
+      
+      //POST USER API
+      app.post('/users', async (req, res) => {
+          const user = req.body;
+          const result = await userCollection.insertOne(user)
+          res.json(result)
+      });
+
+      //SET ADMIN ROLE
+      app.put('/users/admin', async (req, res) => {
+          const user = req.body;
+          const filter = { email: user.email }
+          const updateDoc = { $set: { role: 'admin' } };
+          const result = await userCollection.updateOne(filter, updateDoc)
+          res.json(result);
+        })
+
+      //GET ADMIN 
+      app.get('/users/:email', async (req, res) => {
+          const email = req.params.email;
+          const query = { email: email };
+          const user = await userCollection.findOne(query);
+          let isAdmin = false;
+          if (user?.role === 'admin') {
+              isAdmin = true;
+          }
+          res.json({admin:isAdmin})
+      })
     
    
   } finally {
    // await client.close();
   }
 }
+
 run().catch(console.dir);
 
 
